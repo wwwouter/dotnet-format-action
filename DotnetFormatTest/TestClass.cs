@@ -7,13 +7,12 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DotnetFormatTest
+namespace DotnetFormatTest;
+
+public class TestClass
 {
-    public class TestClass
+    public string GetMessage()
     {
-        public string GetMessage()
-        {
-            return "Hello World!!";
-        }
+        return "Hello World!!";
     }
 }

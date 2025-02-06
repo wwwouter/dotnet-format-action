@@ -1,4 +1,4 @@
-﻿namespace DotnetFormatTest;
+namespace DotnetFormatTest;
 
 public class Class1
 {
