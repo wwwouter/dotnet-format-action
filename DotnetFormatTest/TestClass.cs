@@ -13,7 +13,7 @@ namespace DotnetFormatTest
     {
         public string GetMessage()
         {
-            return "Hello World!";
+            return "Hello World!!";
         }
     }
 }

@@ -39,7 +39,7 @@ for PROJECT in $PROJECTS; do
     FILES=$(grep "^$PROJECT:" "$TEMP_FILE" | cut -d: -f2- | tr '\n' ' ')
     
     echo "Running dotnet format for project $PROJECT on files: $FILES"
-    dotnet format "$PROJECT" --diagnostics IDE0005 --severity info --include $FILES || true
+    dotnet format "$PROJECT" --diagnostics IDE0005 --severity info --include $FILES
 
     # Stage the formatted files
     for FILE in $FILES; do
