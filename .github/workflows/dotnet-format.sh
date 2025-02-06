@@ -27,7 +27,7 @@ if [ -z "$STAGED_FILES" ]; then
 fi
 
 echo "\nChanged .cs files:"
-echo "$STAGED_FILES"
+printf '%s\n' "$STAGED_FILES"
 
 # Create a temporary file to store project-file mappings
 echo "\nCreating temporary file for project mappings"
@@ -45,13 +45,13 @@ find_closest_csproj() {
         CS_PROJ=$(find "$DIR" -maxdepth 1 -name "*.csproj" | head -n 1)
         if [ -n "$CS_PROJ" ]; then
             echo "Found project file: $CS_PROJ"
-            echo "$CS_PROJ"
+            printf '%s' "$CS_PROJ"
             return
         fi
         DIR=$(dirname "$DIR")
     done
     echo "No project file found"
-    echo ""
+    printf ''
 }
 
 # Save current IFS
@@ -70,7 +70,7 @@ for FILE in $STAGED_FILES; do
     PROJECT_FILE=$(find_closest_csproj "$FILE")
     if [ -n "$PROJECT_FILE" ]; then
         echo "Adding to mapping: $PROJECT_FILE -> $FILE"
-        printf "%s:%s\n" "$PROJECT_FILE" "$FILE" >> "$TEMP_FILE"
+        printf '%s:%s\n' "$PROJECT_FILE" "$FILE" >> "$TEMP_FILE"
     else
         echo "No project file found for $FILE. Skipping."
     fi
@@ -80,20 +80,30 @@ done
 echo "\nGetting unique project files"
 PROJECTS=$(cut -d: -f1 "$TEMP_FILE" | sort -u)
 echo "Found projects:"
-echo "$PROJECTS"
+printf '%s\n' "$PROJECTS"
 
 # Process each project
 for PROJECT in $PROJECTS; do
     echo "\nProcessing project: $PROJECT"
     
-    # Get all files for this project and properly quote them
-    FILES=$(grep "^$PROJECT:" "$TEMP_FILE" | cut -d: -f2- | tr '\n' ' ' | sed 's/[[:space:]]*$//')
+    # Create a temporary file for file list
+    FILES_LIST=$(mktemp)
+    trap 'rm -f $FILES_LIST' EXIT
+    
+    # Get all files for this project into a temporary file
+    grep "^$PROJECT:" "$TEMP_FILE" | cut -d: -f2- > "$FILES_LIST"
+    
     echo "Files to format in this project:"
-    echo "$FILES"
+    cat "$FILES_LIST"
     
     echo "\nRunning dotnet format for project $PROJECT"
-    # Quote the project path and each file path
-    CMD="dotnet format \"$PROJECT\" --diagnostics IDE0005 --severity info --include $FILES"
+    # Build the include list with proper quoting
+    INCLUDE_LIST=""
+    while IFS= read -r FILE; do
+        INCLUDE_LIST="$INCLUDE_LIST \"$FILE\""
+    done < "$FILES_LIST"
+    
+    CMD="dotnet format \"$PROJECT\" --diagnostics IDE0005 --severity info --include $INCLUDE_LIST"
     echo "Command: $CMD"
     eval "$CMD" || {
         echo "Warning: dotnet format command failed with exit code $?, continuing..."
@@ -101,10 +111,12 @@ for PROJECT in $PROJECTS; do
 
     # Stage the formatted files
     echo "\nStaging formatted files"
-    for FILE in $FILES; do
+    while IFS= read -r FILE; do
         echo "Staging file: $FILE"
         git add "$FILE"
-    done
+    done < "$FILES_LIST"
+    
+    rm -f "$FILES_LIST"
 done
 
 # Restore original IFS
