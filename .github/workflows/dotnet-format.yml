@@ -28,9 +28,6 @@ jobs:
     
     - name: Run dotnet format
       run: ./dotnet-format.sh
-      env:
-        PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        PR_HEAD_SHA: ${{ github.sha }}
     
     - name: Commit formatted changes
       uses: EndBug/add-and-commit@v9
