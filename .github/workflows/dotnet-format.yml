@@ -27,9 +27,6 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: '9'
-
-    - name: Make dotnet-format.sh executable
-      run: chmod +x ./.github/workflows/dotnet-format.sh
     
     - name: Run dotnet format
       run: ./.github/workflows/dotnet-format.sh
