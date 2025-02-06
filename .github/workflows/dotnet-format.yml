@@ -19,6 +19,9 @@ jobs:
       with:
         dotnet-version: '9'
     
+    - name: Just run
+      run: "dotnet format --diagnostics IDE0005 --severity info"
+
     - name: Get changed files
       id: changed-files
       run: |
