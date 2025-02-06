@@ -2,12 +2,6 @@
 
 echo "Starting dotnet-format.sh script"
 
-# Check if current commit is a merge commit
-echo "\nChecking if current commit is a merge commit"
-if git rev-parse --verify HEAD^2 > /dev/null 2>&1; then
-    echo "Current commit is a merge commit, skipping format"
-    exit 0
-fi
 
 # Get base SHA from environment variable
 BASE_SHA=$PR_BASE_SHA
