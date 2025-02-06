@@ -1,9 +1,16 @@
 name: Format C# Code
 
-on:
-  pull_request:
-    branches: [ main ]
+# on:
+#   pull_request:
 
+on:
+  workflow_dispatch:
+    inputs:
+      commit-message:
+        description: 'Commit message to use if formatting makes changes'
+        required: false
+        default: 'Apply dotnet format formatting'
+        
 # Ensure formatting runs sequentially for the same PR
 concurrency:
   group: format-${{ github.event.pull_request.number }}
