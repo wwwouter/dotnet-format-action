@@ -9,12 +9,19 @@ if git rev-parse --verify HEAD^2 > /dev/null 2>&1; then
     exit 0
 fi
 
-# Get changed .cs files between current and previous commit
-echo "\nGetting changed .cs files between HEAD and HEAD~1"
-STAGED_FILES=$(git diff --name-only HEAD~1 | grep '\.cs$' || true)
+# Get base SHA from environment variable
+BASE_SHA=$PR_BASE_SHA
+if [ -z "$BASE_SHA" ]; then
+    echo "PR_BASE_SHA environment variable not set"
+    exit 1
+fi
+
+# Get changed .cs files between PR base and current HEAD
+echo "\nGetting changed .cs files between $BASE_SHA and HEAD"
+STAGED_FILES=$(git diff --name-only $BASE_SHA | grep '\.cs$' || true)
 
 if [ -z "$STAGED_FILES" ]; then
-    echo "No .cs files were changed in the last commit"
+    echo "No .cs files were changed in this PR"
     exit 0
 fi
 
