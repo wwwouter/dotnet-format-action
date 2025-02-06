@@ -1,0 +1,40 @@
+name: Format C# Code
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '7.0.x'
+    
+    - name: Get changed files
+      id: changed-files
+      run: |
+        echo "STAGED_FILES=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.cs$' | tr '\n' ' ')" >> $GITHUB_ENV
+    
+    - name: Make dotnet-format.sh executable
+      run: chmod +x ./dotnet-format.sh
+    
+    - name: Run dotnet format
+      run: ./dotnet-format.sh
+      env:
+        STAGED_FILES: ${{ env.STAGED_FILES }}
+    
+    - name: Commit formatted changes
+      uses: EndBug/add-and-commit@v9
+      with:
+        author_name: 'GitHub Action'
+        author_email: 'action@github.com'
+        message: 'Apply dotnet format formatting'
+        add: '.'

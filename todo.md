@@ -1,0 +1,3 @@
+- ignore merges 
+- only on PRs
+- build projects, fail if any of them fails
