@@ -29,10 +29,10 @@ jobs:
         dotnet-version: '9'
 
     - name: Make dotnet-format.sh executable
-      run: chmod +x ./dotnet-format.sh
+      run: chmod +x ./.github/workflows/dotnet-format.sh
     
     - name: Run dotnet format
-      run: ./dotnet-format.sh
+      run: ./.github/workflows/dotnet-format.sh
     
     - name: Commit formatted changes
       uses: EndBug/add-and-commit@v9
