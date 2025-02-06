@@ -16,7 +16,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         ref: ${{ github.head_ref }}
-        fetch-depth: 2
+        fetch-depth: 3  # Need depth of 3 to check for merge commits (HEAD + both parents)
     
     - name: Setup .NET
       uses: actions/setup-dotnet@v4

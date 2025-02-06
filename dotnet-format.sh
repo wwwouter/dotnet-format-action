@@ -2,6 +2,13 @@
 
 echo "Starting dotnet-format.sh script"
 
+# Check if current commit is a merge commit
+echo "\nChecking if current commit is a merge commit"
+if git rev-parse --verify HEAD^2 > /dev/null 2>&1; then
+    echo "Current commit is a merge commit, skipping format"
+    exit 0
+fi
+
 # Get changed .cs files between current and previous commit
 echo "\nGetting changed .cs files between HEAD and HEAD~1"
 STAGED_FILES=$(git diff --name-only HEAD~1 | grep '\.cs$' || true)
