@@ -29,7 +29,10 @@ jobs:
         dotnet-version: '9'
     
     - name: Run dotnet format
-      run: ./.github/workflows/dotnet-format.sh
+      run: |
+        # Run from repository root to ensure correct file paths
+        cd $GITHUB_WORKSPACE
+        ./.github/workflows/dotnet-format.sh
     
     - name: Commit formatted changes
       uses: EndBug/add-and-commit@v9
