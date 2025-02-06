@@ -18,7 +18,8 @@ fi
 
 # Get changed .cs files between PR base and current HEAD
 echo "\nGetting changed .cs files between $BASE_SHA and HEAD"
-STAGED_FILES=$(git diff --name-only $BASE_SHA | grep '\.cs$' || true)
+# Use null character as separator to handle filenames with spaces
+STAGED_FILES=$(git diff --name-only -z $BASE_SHA | tr '\0' '\n' | grep '\.cs$' || true)
 
 if [ -z "$STAGED_FILES" ]; then
     echo "No .cs files were changed in this PR"
@@ -53,14 +54,23 @@ find_closest_csproj() {
     echo ""
 }
 
+# Save current IFS
+OLDIFS="$IFS"
+
 # Group files by their closest .csproj
 echo "\nGrouping files by their closest .csproj"
+# Change IFS to newline only
+IFS='
+'
 for FILE in $STAGED_FILES; do
+    # Skip empty lines
+    [ -z "$FILE" ] && continue
+    
     echo "\nProcessing file: $FILE"
     PROJECT_FILE=$(find_closest_csproj "$FILE")
     if [ -n "$PROJECT_FILE" ]; then
         echo "Adding to mapping: $PROJECT_FILE -> $FILE"
-        echo "$PROJECT_FILE:$FILE" >> "$TEMP_FILE"
+        printf "%s:%s\n" "$PROJECT_FILE" "$FILE" >> "$TEMP_FILE"
     else
         echo "No project file found for $FILE. Skipping."
     fi
@@ -76,14 +86,16 @@ echo "$PROJECTS"
 for PROJECT in $PROJECTS; do
     echo "\nProcessing project: $PROJECT"
     
-    # Get all files for this project
-    FILES=$(grep "^$PROJECT:" "$TEMP_FILE" | cut -d: -f2- | tr '\n' ' ')
+    # Get all files for this project and properly quote them
+    FILES=$(grep "^$PROJECT:" "$TEMP_FILE" | cut -d: -f2- | tr '\n' ' ' | sed 's/[[:space:]]*$//')
     echo "Files to format in this project:"
     echo "$FILES"
     
     echo "\nRunning dotnet format for project $PROJECT"
-    echo "Command: dotnet format \"$PROJECT\" --diagnostics IDE0005 --severity info --include $FILES"
-    dotnet format "$PROJECT" --diagnostics IDE0005 --severity info --include $FILES || {
+    # Quote the project path and each file path
+    CMD="dotnet format \"$PROJECT\" --diagnostics IDE0005 --severity info --include $FILES"
+    echo "Command: $CMD"
+    eval "$CMD" || {
         echo "Warning: dotnet format command failed with exit code $?, continuing..."
     }
 
@@ -94,5 +106,8 @@ for PROJECT in $PROJECTS; do
         git add "$FILE"
     done
 done
+
+# Restore original IFS
+IFS="$OLDIFS"
 
 echo "\nScript completed successfully"
