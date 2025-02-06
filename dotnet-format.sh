@@ -2,19 +2,12 @@
 
 echo "Starting dotnet-format.sh script"
 
-# Check if there are changes in the last commit
-echo "\nChecking for changes in the last commit"
-if git diff --quiet HEAD~1 HEAD; then
-    echo "No changes found in the last commit"
-    exit 0
-fi
-
-# Get changed .cs files from last commit
-echo "\nGetting changed .cs files from last commit"
-STAGED_FILES=$(git diff --name-only HEAD~1 HEAD | grep '\.cs$' || true)
+# Get changed .cs files between base and PR head
+echo "\nGetting changed .cs files between base and PR head"
+STAGED_FILES=$(git diff --name-only HEAD..$PR_HEAD_SHA | grep '\.cs$' || true)
 
 if [ -z "$STAGED_FILES" ]; then
-    echo "No .cs files were changed in the last commit"
+    echo "No .cs files were changed in this PR"
     exit 0
 fi
 
