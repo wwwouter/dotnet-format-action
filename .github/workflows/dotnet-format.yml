@@ -42,3 +42,5 @@ jobs:
         author_email: 'action@github.com'
         message: 'Apply dotnet format formatting'
         add: '.'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
