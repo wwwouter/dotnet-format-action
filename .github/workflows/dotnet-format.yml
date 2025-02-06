@@ -1,35 +1,47 @@
 name: Format C# Code
 
+# on:
+#   pull_request:
+
 on:
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      commit-message:
+        description: 'Commit message to use if formatting makes changes'
+        required: false
+        default: 'Apply dotnet format formatting'
+        
+# Ensure formatting runs sequentially for the same PR
+concurrency:
+  group: format-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
 
 jobs:
   format:
     runs-on: ubuntu-latest
     
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
       with:
-        fetch-depth: 0
+        ref: ${{ github.head_ref }}
+        fetch-depth: 0  # Fetch all history to ensure we have access to base commit
     
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '7.0.x'
-    
-    - name: Get changed files
-      id: changed-files
-      run: |
-        echo "STAGED_FILES=$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep '\.cs$' | tr '\n' ' ')" >> $GITHUB_ENV
-    
-    - name: Make dotnet-format.sh executable
-      run: chmod +x ./dotnet-format.sh
+        dotnet-version: '9'
     
     - name: Run dotnet format
-      run: ./dotnet-format.sh
+      run: |
+        # Run from repository root to ensure correct file paths
+        cd $GITHUB_WORKSPACE
+        ./.github/workflows/dotnet-format.sh
       env:
-        STAGED_FILES: ${{ env.STAGED_FILES }}
+        PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
     
     - name: Commit formatted changes
       uses: EndBug/add-and-commit@v9
@@ -38,3 +50,5 @@ jobs:
         author_email: 'action@github.com'
         message: 'Apply dotnet format formatting'
         add: '.'
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

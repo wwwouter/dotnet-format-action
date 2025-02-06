@@ -1,0 +1,1 @@
+chmod +x ./.github/workflows/dotnet-format.sh

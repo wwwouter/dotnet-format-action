@@ -1,6 +1,6 @@
 namespace DotnetFormatTest;
 
-public class TestClass
+public class TestClassCopy
 {
     public string GetMessage()
     {
